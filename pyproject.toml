@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sql-visualiser"
+version = "0.1.0"
+description = "Step-by-step visualiser for MySQL query execution: CTEs, joins, windows, subqueries and more"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+keywords = ["sql", "mysql", "visualizer", "education", "query-plan"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Framework :: FastAPI",
+    "Topic :: Database",
+    "Topic :: Education",
+]
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.34,<1",
+    "pymysql[rsa]>=1.1,<2",
+    "sqlglot>=28,<29",
+    "httpx>=0.28,<1",
+    "python-multipart>=0.0.20,<1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<9"]
+dev = ["pytest>=8,<9", "build>=1.2"]
+
+[project.scripts]
+sql-visualiser = "sqlviz.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Mansoor-stack/sql-visualiser"
+Issues = "https://github.com/Mansoor-stack/sql-visualiser/issues"
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+
+[tool.setuptools.package-data]
+sqlviz = ["static/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,2 @@
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX
+ON `viz\_%`.* TO 'visualizer'@'%';
