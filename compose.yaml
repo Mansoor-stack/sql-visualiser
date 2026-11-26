@@ -1,0 +1,48 @@
+# Usage: see README "Run with Docker Compose".
+#   MYSQL_ROOT_PASSWORD=... MYSQL_PASSWORD=... docker compose up -d
+# To build locally instead of pulling the published image:
+#   docker compose up -d --build
+services:
+  mysql:
+    image: ${MYSQL_IMAGE:-mysql:8.4}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: visualizer
+      MYSQL_USER: visualizer
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/visualizer.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$${MYSQL_PASSWORD}\" mysql -u visualizer -e 'SELECT 1' visualizer"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    mem_limit: 768m
+  app:
+    image: ${SQLVIZ_IMAGE:-ghcr.io/mansoor-stack/sql-visualiser:latest}
+    build:
+      context: .
+      target: runtime
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org/}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+    ports:
+      - "127.0.0.1:${SQLVIZ_PORT:-8080}:8080"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: visualizer
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
+      SQLVIZ_MAX_ROWS: ${SQLVIZ_MAX_ROWS:-1000}
+      AI_PROVIDER: ${AI_PROVIDER:-none}
+      AI_BASE_URL: ${AI_BASE_URL:-http://host.docker.internal:11434}
+      AI_MODEL: ${AI_MODEL:-qwen2.5:7b}
+      AI_API_KEY: ${AI_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    mem_limit: 512m
+volumes:
+  mysql-data:
